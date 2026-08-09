@@ -99,6 +99,25 @@
   .subtitle{
     font-size:14px; color:#4a4a3d; line-height:1.5; max-width:440px; margin:0 auto;
   }
+  .last-draw{
+    display:inline-block;
+    margin: 14px auto 0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    font-weight:600;
+    color: var(--green);
+    background: var(--paper-dark);
+    border: 1px dashed var(--line);
+    border-radius: 20px;
+    padding: 6px 16px;
+  }
+  .last-draw .dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    background: var(--stamp);
+    margin-right:7px;
+  }
 
   .grid-label{
     display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;
@@ -290,6 +309,7 @@
       <div class="eyebrow">Arhivă 1993 — 2026</div>
       <h1>Ai fi câștigat<br>vreodată?</h1>
       <p class="subtitle">Alege 6 numere ca la loto 6/49 și află dacă, jucându-le la fiecare extragere din ultimii 33 de ani, ai fi nimerit vreodată premiul cel mare.</p>
+      <p class="last-draw" id="lastDraw"></p>
     </header>
 
     <div class="grid-label">
@@ -315,6 +335,13 @@
 
 <script>
 const DATA = __LOTO_DATA__;
+
+const lastDrawEl = document.getElementById('lastDraw');
+if(DATA.length > 0){
+  const ultima = DATA[DATA.length - 1];
+  lastDrawEl.innerHTML = '<span class="dot"></span>Ultima extragere: ' + ultima[0] +
+    ' — ' + ultima.slice(1).join(', ');
+}
 
 const grid = document.getElementById('grid');
 const counter = document.getElementById('counter');
