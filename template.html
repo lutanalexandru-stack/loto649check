@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loto 6/49 — Ai fi câștigat vreodată?</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2316342B' stroke='%23B8892B' stroke-width='3'/%3E%3Ctext x='32' y='38' font-family='Georgia,serif' font-weight='700' font-size='16' fill='%23F0E6C8' text-anchor='middle'%3E6/49%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F0E6C8;
+    --paper-dark: #E4D6AE;
+    --green: #16342B;
+    --green-light: #234B3D;
+    --ink: #1A1A1A;
+    --gold: #B8892B;
+    --stamp: #A33327;
+    --line: #8FA79A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--green);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.03), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(255,255,255,0.03), transparent 40%);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding: 48px 16px 80px;
+  }
+  .ticket{
+    width:100%;
+    max-width: 620px;
+    background: var(--paper);
+    position:relative;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+    border-radius: 4px;
+  }
+  .perforation{
+    height:16px;
+    width:100%;
+    background-image: radial-gradient(circle, var(--green) 5px, transparent 5.5px);
+    background-size: 24px 24px;
+    background-position: 0 -8px;
+    background-repeat: repeat-x;
+  }
+  .ticket-inner{ padding: 8px 36px 40px; }
+
+  header{ text-align:center; padding: 20px 0 24px; border-bottom: 2px dashed var(--line); margin-bottom: 28px;}
+  .logo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .logo-ball{
+    width:44px; height:44px;
+    border-radius:50%;
+    background: var(--green);
+    color: var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:15px;
+    border: 2px solid var(--gold);
+    box-shadow: inset 0 0 0 2px var(--paper);
+    flex-shrink:0;
+  }
+  .logo-word{
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:0.02em;
+    color:var(--green);
+  }
+  .logo-word span{ color:var(--stamp); }
+  .eyebrow{
+    font-size: 11px; letter-spacing: 0.25em; text-transform:uppercase;
+    color: var(--green-light); font-weight:600; margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:800;
+    font-size: clamp(30px, 6vw, 44px);
+    margin: 0 0 8px;
+    color: var(--green);
+    line-height:1.05;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    font-size:14px; color:#4a4a3d; line-height:1.5; max-width:440px; margin:0 auto;
+  }
+
+  .grid-label{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;
+  }
+  .grid-label span:first-child{ font-size:13px; font-weight:600; color:var(--green); text-transform:uppercase; letter-spacing:0.08em;}
+  .counter{ font-size:13px; color: var(--stamp); font-weight:600; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 22px;
+  }
+  .cell{
+    aspect-ratio: 1;
+    border: 1.5px solid var(--green);
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 14px; font-weight:600;
+    cursor:pointer;
+    background: transparent;
+    color: var(--green);
+    position:relative;
+    transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease;
+    user-select:none;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .cell:hover{ background: rgba(22,52,43,0.08); }
+  .cell.picked{
+    background: var(--green);
+    color: var(--paper);
+    transform: scale(1.05);
+  }
+  .cell.picked::after{
+    content:"";
+    position:absolute; inset:-4px;
+    border: 1.5px solid var(--stamp);
+    border-radius:50%;
+    transform: rotate(-8deg);
+  }
+  .cell.disabled{ opacity:0.3; cursor:not-allowed; }
+
+  .actions{ display:flex; justify-content:center; gap:12px; margin-bottom: 6px; flex-wrap:wrap;}
+  button{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding: 13px 26px;
+    border-radius: 3px;
+    border: 2px solid var(--green);
+    cursor:pointer;
+    transition: all 0.15s ease;
+  }
+  #checkBtn{
+    background: var(--stamp);
+    border-color: var(--stamp);
+    color: var(--paper);
+  }
+  #checkBtn:disabled{
+    background: transparent;
+    color: #999;
+    border-color:#c9bd97;
+    cursor:not-allowed;
+  }
+  #checkBtn:not(:disabled):hover{ background:#8a2a1f; border-color:#8a2a1f; }
+  #randomBtn, #clearBtn{
+    background: transparent; color: var(--green);
+  }
+  #randomBtn:hover, #clearBtn:hover{ background: rgba(22,52,43,0.08); }
+
+  .receipt{
+    margin-top: 32px;
+    border-top: 2px dashed var(--line);
+    padding-top: 24px;
+    display:none;
+  }
+  .receipt.show{ display:block; animation: unroll 0.4s ease; }
+  @keyframes unroll{
+    from{ opacity:0; transform: translateY(-10px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .receipt h2{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size: 22px;
+    color: var(--green);
+    margin: 0 0 4px;
+  }
+  .verdict{
+    font-size:13px;
+    color: var(--stamp);
+    font-weight:600;
+    margin-bottom:18px;
+  }
+  .verdict.win{ color: var(--green); }
+
+  .row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding: 7px 0;
+    border-bottom: 1px dotted #b9ac86;
+  }
+  .row span:first-child{ color:#5a5646; }
+  .row span:last-child{ font-weight:600; color: var(--ink); }
+
+  .best-card{
+    margin-top:18px;
+    background: var(--green);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 18px 20px;
+  }
+  .best-card .label{ font-size:11px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.7; margin-bottom:8px;}
+  .best-balls{ display:flex; gap:8px; flex-wrap:wrap; margin: 10px 0 8px;}
+  .best-balls .ball{
+    width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+    border: 1.5px solid var(--paper);
+  }
+  .best-balls .ball.match{ background: var(--gold); color: var(--green); border-color: var(--gold); }
+  .best-date{ font-size:12px; opacity:0.8; }
+
+  .share{
+    margin-top:20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .share-label{
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5a5646;
+    margin-right:2px;
+  }
+  .share-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding: 9px 16px;
+    border-radius: 3px;
+    font-size:12px;
+    font-weight:600;
+    text-decoration:none;
+    border: 1.5px solid var(--green);
+    color: var(--paper);
+    text-transform:none;
+    letter-spacing:normal;
+    cursor:pointer;
+  }
+  .share-btn svg{ width:14px; height:14px; flex-shrink:0; }
+  .share-btn.fb{ background:#1877F2; border-color:#1877F2; }
+  .share-btn.fb:hover{ background:#125fc4; }
+  .share-btn.x{ background:#000; border-color:#000; }
+  .share-btn.x:hover{ background:#222; }
+  .share-btn.copy{ background: var(--green); }
+  .share-btn.copy:hover{ background: var(--green-light); }
+  .share-btn.copy.copied{ background: var(--gold); border-color:var(--gold); color:var(--green); }
+
+  footer{
+    text-align:center;
+    margin-top:28px;
+    font-size:11px;
+    color:#7a7460;
+    line-height:1.6;
+  }
+
+  @media (max-width:420px){
+    .cell{ font-size:12px; }
+    .ticket-inner{ padding: 8px 18px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ticket">
+  <div class="perforation"></div>
+  <div class="ticket-inner">
+    <header>
+      <div class="logo">
+        <div class="logo-ball">6/49</div>
+        <div class="logo-word">LOTO<span>CHECK</span></div>
+      </div>
+      <div class="eyebrow">Arhivă 1993 — 2026</div>
+      <h1>Ai fi câștigat<br>vreodată?</h1>
+      <p class="subtitle">Alege 6 numere ca la loto 6/49 și află dacă, jucându-le la fiecare extragere din ultimii 33 de ani, ai fi nimerit vreodată premiul cel mare.</p>
+    </header>
+
+    <div class="grid-label">
+      <span>Biletul tău</span>
+      <span class="counter" id="counter">0 / 6 alese</span>
+    </div>
+    <div class="grid" id="grid"></div>
+
+    <div class="actions">
+      <button id="checkBtn" disabled>Verifică biletul</button>
+      <button id="randomBtn">Numere random</button>
+      <button id="clearBtn">Șterge</button>
+    </div>
+
+    <div class="receipt" id="receipt"></div>
+
+    <footer>
+      Date extrase din arhiva publică a extragerilor Loto 6/49 (Loteria Română), 1993–2026 · 2462 extrageri analizate<br>
+      Fiecare extragere e independentă — rezultatele din trecut nu influențează șansele viitoare.
+    </footer>
+  </div>
+</div>
+
+<script>
+const DATA = __LOTO_DATA__;
+
+const grid = document.getElementById('grid');
+const counter = document.getElementById('counter');
+const checkBtn = document.getElementById('checkBtn');
+const randomBtn = document.getElementById('randomBtn');
+const clearBtn = document.getElementById('clearBtn');
+const receipt = document.getElementById('receipt');
+
+let picked = new Set();
+
+for(let n=1; n<=49; n++){
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.textContent = n;
+  cell.dataset.n = n;
+  cell.addEventListener('click', () => toggle(n, cell));
+  grid.appendChild(cell);
+}
+
+function toggle(n, cell){
+  if(picked.has(n)){
+    picked.delete(n);
+    cell.classList.remove('picked');
+  } else {
+    if(picked.size >= 6) return;
+    picked.add(n);
+    cell.classList.add('picked');
+  }
+  updateUI();
+}
+
+function updateUI(){
+  counter.textContent = picked.size + ' / 6 alese';
+  checkBtn.disabled = picked.size !== 6;
+  document.querySelectorAll('.cell').forEach(c => {
+    const n = Number(c.dataset.n);
+    c.classList.toggle('disabled', picked.size >= 6 && !picked.has(n));
+  });
+  receipt.classList.remove('show');
+}
+
+randomBtn.addEventListener('click', () => {
+  picked.clear();
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('picked'));
+  while(picked.size < 6){
+    picked.add(1 + Math.floor(Math.random()*49));
+  }
+  document.querySelectorAll('.cell').forEach(c => {
+    if(picked.has(Number(c.dataset.n))) c.classList.add('picked');
+  });
+  updateUI();
+});
+
+clearBtn.addEventListener('click', () => {
+  picked.clear();
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('picked'));
+  updateUI();
+});
+
+checkBtn.addEventListener('click', () => {
+  const numere = [...picked];
+  const rezultate = DATA.map(row => {
+    const [data, ...extrase] = row;
+    const matches = extrase.filter(n => picked.has(n));
+    return { data, extrase, matches: matches.length };
+  });
+
+  const total = rezultate.length;
+  const dist = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  rezultate.forEach(r => dist[r.matches]++);
+
+  let best = rezultate[0];
+  rezultate.forEach(r => { if(r.matches > best.matches) best = r; });
+
+  const won = best.matches === 6;
+
+  let html = '';
+  html += '<h2>' + (won ? 'AI FI CÂȘTIGAT!' : 'Rezultatul verificării') + '</h2>';
+  html += '<div class="verdict ' + (won ? 'win' : '') + '">' +
+    (won
+      ? '6 din 6 numere s-au potrivit pe ' + best.data + '!'
+      : 'Niciodată 6 din 6, pe ' + total + ' extrageri verificate.') +
+    '</div>';
+
+  html += '<div class="row"><span>Extrageri analizate</span><span>' + total + '</span></div>';
+  html += '<div class="row"><span>Perioadă</span><span>' + DATA[0][0] + ' – ' + DATA[DATA.length-1][0] + '</span></div>';
+  for(let k=6;k>=3;k--){
+    if(dist[k] > 0){
+      html += '<div class="row"><span>Potriviri de ' + k + '/6</span><span>' + dist[k] + ' ' + (dist[k]===1?'dată':'ori') + '</span></div>';
+    }
+  }
+  html += '<div class="row"><span>Potriviri de 2/6</span><span>' + dist[2] + ' ori</span></div>';
+  html += '<div class="row"><span>Potriviri de 1/6</span><span>' + dist[1] + ' ori</span></div>';
+  html += '<div class="row"><span>Fără nicio potrivire</span><span>' + dist[0] + ' ori</span></div>';
+
+  html += '<div class="best-card">';
+  html += '<div class="label">Cea mai apropiată extragere de bilet</div>';
+  html += '<div class="best-balls">';
+  best.extrase.forEach(n => {
+    html += '<div class="ball' + (picked.has(n) ? ' match' : '') + '">' + n + '</div>';
+  });
+  html += '</div>';
+  html += '<div class="best-date">' + best.data + ' — ' + best.matches + ' din 6 numere potrivite</div>';
+  html += '</div>';
+
+  const shareText = won
+    ? 'Am verificat biletul meu (' + numere.slice().sort((a,b)=>a-b).join(', ') + ') pe 33 de ani de extrageri Loto 6/49 și AȘ FI CÂȘTIGAT pe ' + best.data + '! Verifică-ți și tu numerele:'
+    : 'Am verificat biletul meu (' + numere.slice().sort((a,b)=>a-b).join(', ') + ') pe ' + total + ' extrageri Loto 6/49 din ultimii 33 de ani. Cea mai bună potrivire: ' + best.matches + '/6, pe ' + best.data + '. Verifică-ți și tu numerele:';
+
+  html += '<div class="share">';
+  html += '<span class="share-label">Distribuie</span>';
+  html += '<a class="share-btn fb" id="shareFb" target="_blank" rel="noopener">' +
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12"/></svg>' +
+    'Facebook</a>';
+  html += '<a class="share-btn x" id="shareX" target="_blank" rel="noopener">' +
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.7l-5.2-6.8L4.9 22H2l8.1-9.3L2 2h6.9l4.8 6.2L18.9 2Zm-1.2 18.2h1.7L6.4 3.7H4.6l13.1 16.5Z"/></svg>' +
+    'X</a>';
+  html += '<a class="share-btn copy" id="shareCopy">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="1"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>' +
+    'Copiază</a>';
+  html += '</div>';
+
+  receipt.innerHTML = html;
+  receipt.classList.add('show');
+  receipt.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  const pageUrl = window.location.href.split('#')[0];
+  document.getElementById('shareFb').href =
+    'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(pageUrl) +
+    '&quote=' + encodeURIComponent(shareText);
+  document.getElementById('shareX').href =
+    'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +
+    '&url=' + encodeURIComponent(pageUrl);
+
+  document.getElementById('shareCopy').addEventListener('click', () => {
+    const btn = document.getElementById('shareCopy');
+    navigator.clipboard.writeText(shareText + ' ' + pageUrl).then(() => {
+      btn.classList.add('copied');
+      const original = btn.innerHTML;
+      btn.innerHTML = 'Copiat!';
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1800);
+    });
+  });
+});
+</script>
+
+</body>
+</html>
