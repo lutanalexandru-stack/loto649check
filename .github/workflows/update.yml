@@ -1,0 +1,36 @@
+name: Actualizeaza extragerile Loto 6/49
+
+on:
+  schedule:
+    # Ruleaza la 09:00 UTC (12:00 ora Romaniei) in fiecare miercuri si duminica,
+    # dupa extragerile Loto 6/49. Formatul e cron: minut ora zi luna zi-saptamana.
+    - cron: '0 9 * * 3,0'
+  workflow_dispatch: {}   # permite si rulare manuala din tab-ul "Actions" de pe GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  actualizeaza:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descarca codul repo-ului
+        uses: actions/checkout@v4
+
+      - name: Instaleaza Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instaleaza librariile necesare
+        run: pip install requests beautifulsoup4
+
+      - name: Ruleaza scriptul de actualizare
+        run: python update_site.py
+
+      - name: Publica modificarile (daca exista)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --staged --quiet && echo "Nimic nou de publicat" || (git commit -m "Actualizare automata extrageri Loto 6/49" && git push)
