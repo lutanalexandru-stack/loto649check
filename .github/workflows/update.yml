@@ -33,4 +33,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --staged --quiet && echo "Nimic nou de publicat" || (git commit -m "Actualizare automata extrageri Loto 6/49" && git push)
+          git diff --staged --quiet && echo "Nimic nou de publicat" || (git commit -m "Actualizare automata extrageri Loto 6/49" && git pull --rebase --autostash origin main && git push)
