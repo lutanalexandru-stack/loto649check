@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Descarca codul repo-ului
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Instaleaza Python
         uses: actions/setup-python@v5
